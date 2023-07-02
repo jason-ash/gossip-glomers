@@ -21,9 +21,9 @@ where
     fn response(&mut self, msg: &Message) -> Result<Message>;
 
     /// generate an init_ok message in response to an init message.
-    fn init_ok(&mut self, msg: &Message) -> Result<Message> {
+    fn response_init_ok(&mut self, msg: &Message) -> Result<Message> {
         match msg.get_type() {
-            Payload::Init(_) => Ok(Message {
+            Payload::Init { node_id, .. } => Ok(Message {
                 src: msg.dest.clone(),
                 dest: msg.src.clone(),
                 body: Body {

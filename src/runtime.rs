@@ -23,12 +23,14 @@ impl<N: Node> Runtime<N> {
             let line = line?;
             match serde_json::from_str::<Message>(&line) {
                 Ok(msg) => match msg.get_type() {
-                    Payload::Init(_) => {
+                    Payload::Init { .. } => {
                         self.node = Some(N::new(&msg)?);
                         write!(
                             stdout,
                             "{}\n",
-                            serde_json::to_string(&self.node.as_mut().unwrap().init_ok(&msg)?)?
+                            serde_json::to_string(
+                                &self.node.as_mut().unwrap().response_init_ok(&msg)?
+                            )?
                         )?;
                     }
                     _ => {
