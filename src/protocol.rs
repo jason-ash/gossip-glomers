@@ -30,7 +30,7 @@ impl std::fmt::Display for Message {
 impl TryFrom<&str> for Message {
     type Error = Error;
     fn try_from(value: &str) -> Result<Self> {
-        serde_json::from_str(value)?
+        Ok(serde_json::from_str(value)?)
     }
 }
 
@@ -57,7 +57,7 @@ pub enum Payload {
     },
     Init {
         node_id: NodeId,
-        mode_ids: Vec<NodeId>,
+        node_ids: Vec<NodeId>,
     },
     InitOk,
 }

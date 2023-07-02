@@ -22,8 +22,8 @@ where
 
     /// generate an init_ok message in response to an init message.
     fn response_init_ok(&mut self, msg: &Message) -> Result<Message> {
-        match msg.get_type() {
-            Payload::Init { .. } => Ok(Message {
+        if let Payload::Init { .. } = msg.get_type() {
+            Ok(Message {
                 src: msg.dest.clone(),
                 dest: msg.src.clone(),
                 body: Body {
@@ -31,10 +31,11 @@ where
                     in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
                     payload: Payload::InitOk,
                 },
-            }),
-            _ => Err(Error::NodeError(
+            })
+        } else {
+            Err(Error::NodeError(
                 "Need an init message to respond to.".to_string(),
-            )),
+            ))
         }
     }
 }
