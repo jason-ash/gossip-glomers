@@ -22,8 +22,8 @@ impl<N: Node> Runtime<N> {
         for line in stdin.lines() {
             let line = line?;
             match Message::try_from(line.as_ref()) {
-                Ok(msg) => match msg.get_type() {
-                    Payload::Init { .. } => {
+                Ok(msg) => {
+                    if let Payload::Init { .. } = msg.get_type() {
                         self.node = Some(N::new(&msg)?);
                         write!(
                             stdout,
@@ -34,12 +34,11 @@ impl<N: Node> Runtime<N> {
                                 .expect("node to exist")
                                 .response_init_ok(&msg)?
                         )?;
-                    }
-                    _ => {
+                    } else {
                         let response = &self.node.as_mut().unwrap().response(&msg)?;
                         write!(stdout, "{}\n", response)?
                     }
-                },
+                }
                 Err(e) => write!(stderr, "{:?}\n", e)?,
             }
         }
