@@ -1,3 +1,4 @@
+use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 
 pub type MessageId = usize;
@@ -13,6 +14,23 @@ pub struct Message {
 impl Message {
     pub fn get_type(&self) -> &Payload {
         &self.body.payload
+    }
+}
+
+impl std::fmt::Display for Message {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            serde_json::to_string(&self).map_err(|_| std::fmt::Error)?
+        )
+    }
+}
+
+impl TryFrom<&str> for Message {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        serde_json::from_str(value)?
     }
 }
 
@@ -43,25 +61,3 @@ pub enum Payload {
     },
     InitOk,
 }
-
-// #[derive(Debug, Deserialize, Serialize)]
-// pub struct EchoPayload {
-//     pub echo: String,
-// }
-//
-// #[derive(Debug, Deserialize, Serialize)]
-// pub struct EchoOkPayload {
-//     pub echo: String,
-// }
-//
-// #[derive(Debug, Deserialize, Serialize)]
-// pub struct ErrorPayload {
-//     pub text: String,
-//     pub code: usize,
-// }
-//
-// #[derive(Debug, Deserialize, Serialize)]
-// pub struct InitPayload {
-//     pub node_id: NodeId,
-//     pub node_ids: Vec<NodeId>,
-// }

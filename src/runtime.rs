@@ -21,21 +21,23 @@ impl<N: Node> Runtime<N> {
 
         for line in stdin.lines() {
             let line = line?;
-            match serde_json::from_str::<Message>(&line) {
+            match Message::try_from(line.as_ref()) {
                 Ok(msg) => match msg.get_type() {
                     Payload::Init { .. } => {
                         self.node = Some(N::new(&msg)?);
                         write!(
                             stdout,
                             "{}\n",
-                            serde_json::to_string(
-                                &self.node.as_mut().unwrap().response_init_ok(&msg)?
-                            )?
+                            &self
+                                .node
+                                .as_mut()
+                                .expect("node to exist")
+                                .response_init_ok(&msg)?
                         )?;
                     }
                     _ => {
                         let response = &self.node.as_mut().unwrap().response(&msg)?;
-                        write!(stdout, "{}\n", serde_json::to_string(&response)?)?
+                        write!(stdout, "{}\n", response)?
                     }
                 },
                 Err(e) => write!(stderr, "{:?}\n", e)?,
