@@ -55,6 +55,10 @@ pub enum Payload {
         text: String,
         code: usize,
     },
+    Generate,
+    GenerateOk {
+        id: String,
+    },
     Init {
         node_id: NodeId,
         node_ids: Vec<NodeId>,

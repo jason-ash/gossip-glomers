@@ -5,12 +5,12 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct EchoAgent {
+pub struct UniqueIdAgent {
     pub node_id: NodeId,
     pub msg_id: MessageId,
 }
 
-impl Node for EchoAgent {
+impl Node for UniqueIdAgent {
     fn new(msg: &Message) -> Result<Self> {
         match &msg.body.payload {
             Payload::Init { node_id, .. } => Ok(Self {
@@ -35,17 +35,22 @@ impl Node for EchoAgent {
 
     fn response(&mut self, msg: &Message) -> Result<Message> {
         match msg.get_type() {
-            Payload::Echo { echo } => Ok(Message {
-                src: msg.dest.clone(),
-                dest: msg.src.clone(),
-                body: Body {
-                    msg_id: Some(self.generate_msg_id()),
-                    in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                    payload: Payload::EchoOk { echo: echo.clone() },
-                },
-            }),
+            Payload::Generate {} => {
+                let msg_id = self.generate_msg_id();
+                Ok(Message {
+                    src: msg.dest.clone(),
+                    dest: msg.src.clone(),
+                    body: Body {
+                        msg_id: Some(msg_id),
+                        in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
+                        payload: Payload::GenerateOk {
+                            id: format!("{}-{}", self.node_id, msg_id),
+                        },
+                    },
+                })
+            }
             _ => Err(Error::NodeError(
-                "Can only respond to 'echo' messages.".to_string(),
+                "Can only respond to 'generate' messages.".to_string(),
             )),
         }
     }
