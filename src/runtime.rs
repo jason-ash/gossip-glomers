@@ -42,8 +42,12 @@ impl<N: Node> Runtime<N> {
                             .response(&msg);
                         match &response {
                             Ok(msg) => Self::send(msg, &mut stdout)?,
-                            Err(Error::NodeError { msg: Some(err), .. }) => {
-                                Self::send(err, &mut stderr)?
+                            Err(Error::NodeError {
+                                msg: Some(err),
+                                detail,
+                            }) => {
+                                Self::send(err, &mut stdout)?;
+                                write!(stderr, "{}\n", detail)?;
                             }
                             _ => (),
                         }
