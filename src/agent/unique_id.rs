@@ -52,7 +52,7 @@ impl Node for UniqueIdAgent {
                 })
             }
             _ => Err(Error::NodeError {
-                msg: None,
+                msg: Some(Self::response_not_supported(&msg)),
                 detail: "Can only respond to 'generate' messages.".to_string(),
             }),
         }

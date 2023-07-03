@@ -1,5 +1,5 @@
 use crate::{
-    error::Result,
+    error::{Error, Result},
     node::Node,
     protocol::{Message, Payload},
 };
@@ -39,8 +39,14 @@ impl<N: Node> Runtime<N> {
                             .node
                             .as_mut()
                             .expect("to find an initialized node")
-                            .response(&msg)?;
-                        Self::send(&response, &mut stdout)?;
+                            .response(&msg);
+                        match &response {
+                            Ok(msg) => Self::send(msg, &mut stdout)?,
+                            Err(Error::NodeError { msg: Some(err), .. }) => {
+                                Self::send(err, &mut stderr)?
+                            }
+                            _ => (),
+                        }
                     }
                 }
                 Err(e) => write!(stderr, "{:?}\n", e)?,

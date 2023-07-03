@@ -47,7 +47,7 @@ impl Node for EchoAgent {
                 },
             }),
             _ => Err(Error::NodeError {
-                msg: None,
+                msg: Some(Self::response_not_supported(&msg)),
                 detail: "Can only respond to 'echo' messages.".to_string(),
             }),
         }
