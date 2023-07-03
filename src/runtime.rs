@@ -25,25 +25,22 @@ impl<N: Node> Runtime<N> {
                 Ok(msg) => {
                     if let Payload::Init { .. } = msg.get_type() {
                         self.node = Some(N::new(&msg)?);
-                        write!(
-                            stdout,
-                            "{}\n",
-                            &self
-                                .node
-                                .as_mut()
-                                .expect("node to exist")
-                                .response_init_ok(&msg)?
-                        )?;
+                        let response = &self
+                            .node
+                            .as_mut()
+                            .expect("node to exist")
+                            .response_init_ok(&msg)?;
+                        Self::send(&response, &mut stdout)?;
                     } else if self.node.is_none() {
                         let response = N::response_node_not_initialized(&msg);
-                        write!(stderr, "{}\n", response)?
+                        Self::send(&response, &mut stderr)?;
                     } else {
                         let response = &self
                             .node
                             .as_mut()
                             .expect("to find an initialized node")
                             .response(&msg)?;
-                        write!(stdout, "{}\n", response)?
+                        Self::send(&response, &mut stdout)?;
                     }
                 }
                 Err(e) => write!(stderr, "{:?}\n", e)?,
@@ -51,5 +48,9 @@ impl<N: Node> Runtime<N> {
         }
 
         Ok(())
+    }
+
+    pub fn send(msg: &Message, dest: &mut dyn Write) -> Result<()> {
+        Ok(write!(dest, "{}\n", msg)?)
     }
 }
