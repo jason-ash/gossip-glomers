@@ -12,7 +12,7 @@ where
     fn new(msg: &Message) -> Result<Self>;
 
     /// return the node_id for this node, e.g. "n1".
-    fn node_id(&self) -> NodeId;
+    fn node_id(&self) -> &NodeId;
 
     /// return a unique msg_id for messages from this node.
     fn generate_msg_id(&mut self) -> MessageId;

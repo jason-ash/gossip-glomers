@@ -25,8 +25,8 @@ impl Node for UniqueIdAgent {
         }
     }
 
-    fn node_id(&self) -> NodeId {
-        self.node_id.clone()
+    fn node_id(&self) -> &NodeId {
+        &self.node_id
     }
 
     fn generate_msg_id(&mut self) -> MessageId {
