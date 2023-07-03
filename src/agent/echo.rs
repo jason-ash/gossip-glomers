@@ -12,15 +12,16 @@ pub struct EchoAgent {
 
 impl Node for EchoAgent {
     fn new(msg: &Message) -> Result<Self> {
-        match &msg.body.payload {
-            Payload::Init { node_id, .. } => Ok(Self {
-                node_id: node_id.to_owned(),
+        if let Payload::Init { node_id, .. } = msg.get_type() {
+            Ok(Self {
+                node_id: node_id.clone(),
                 msg_id: 0,
-            }),
-            _ => Err(Error::NodeError {
+            })
+        } else {
+            Err(Error::NodeError {
                 msg: None,
                 detail: "Expected an init message.".to_string(),
-            }),
+            })
         }
     }
 
