@@ -17,9 +17,10 @@ impl Node for UniqueIdAgent {
                 node_id: node_id.to_owned(),
                 msg_id: 0,
             }),
-            _ => Err(crate::error::Error::NodeError(
-                "Expected an init message.".to_string(),
-            )),
+            _ => Err(crate::error::Error::NodeError {
+                msg: None,
+                detail: "Expected an init message.".to_string(),
+            }),
         }
     }
 
@@ -49,9 +50,10 @@ impl Node for UniqueIdAgent {
                     },
                 })
             }
-            _ => Err(Error::NodeError(
-                "Can only respond to 'generate' messages.".to_string(),
-            )),
+            _ => Err(Error::NodeError {
+                msg: None,
+                detail: "Can only respond to 'generate' messages.".to_string(),
+            }),
         }
     }
 }

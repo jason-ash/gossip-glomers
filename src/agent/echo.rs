@@ -17,9 +17,10 @@ impl Node for EchoAgent {
                 node_id: node_id.to_owned(),
                 msg_id: 0,
             }),
-            _ => Err(crate::error::Error::NodeError(
-                "Expected an init message.".to_string(),
-            )),
+            _ => Err(Error::NodeError {
+                msg: None,
+                detail: "Expected an init message.".to_string(),
+            }),
         }
     }
 
@@ -44,9 +45,10 @@ impl Node for EchoAgent {
                     payload: Payload::EchoOk { echo: echo.clone() },
                 },
             }),
-            _ => Err(Error::NodeError(
-                "Can only respond to 'echo' messages.".to_string(),
-            )),
+            _ => Err(Error::NodeError {
+                msg: None,
+                detail: "Can only respond to 'echo' messages.".to_string(),
+            }),
         }
     }
 }

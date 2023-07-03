@@ -33,9 +33,10 @@ where
                 },
             })
         } else {
-            Err(Error::NodeError(
-                "Need an init message to respond to.".to_string(),
-            ))
+            Err(Error::NodeError {
+                msg: None,
+                detail: "Need an init message to respond to.".to_string(),
+            })
         }
     }
 }

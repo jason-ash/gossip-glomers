@@ -1,12 +1,17 @@
 use serde::{Deserialize, Serialize};
 
+use crate::protocol::Message;
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Error {
     IoError(String),
     JsonError(String),
-    NodeError(String),
+    NodeError {
+        msg: Option<Message>,
+        detail: String,
+    },
 }
 
 impl std::error::Error for Error {}
