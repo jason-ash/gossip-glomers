@@ -39,4 +39,21 @@ where
             })
         }
     }
+
+    /// generate an error message if the node hasn't been initialized, yet receives a message that
+    /// is not init
+    fn response_node_not_initialized(msg: &Message) -> Message {
+        Message {
+            src: msg.dest.clone(),
+            dest: msg.src.clone(),
+            body: Body {
+                msg_id: Some(0),
+                in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
+                payload: Payload::Error {
+                    code: 1,
+                    text: "This node doesn't exist; expecting an `init` message first.".into(),
+                },
+            },
+        }
+    }
 }

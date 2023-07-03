@@ -34,6 +34,9 @@ impl<N: Node> Runtime<N> {
                                 .expect("node to exist")
                                 .response_init_ok(&msg)?
                         )?;
+                    } else if self.node.is_none() {
+                        let response = N::response_node_not_initialized(&msg);
+                        write!(stderr, "{}\n", response)?
                     } else {
                         let response = &self
                             .node
