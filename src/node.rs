@@ -9,7 +9,7 @@ where
     Self: Debug + Sized,
 {
     /// construct a new node from an init message,
-    fn new(msg: &Message) -> Result<Self>;
+    fn init(msg: &Message) -> Result<Self>;
 
     /// return the node_id for this node, e.g. "n1".
     fn node_id(&self) -> &NodeId;

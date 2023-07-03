@@ -11,7 +11,7 @@ pub struct EchoAgent {
 }
 
 impl Node for EchoAgent {
-    fn new(msg: &Message) -> Result<Self> {
+    fn init(msg: &Message) -> Result<Self> {
         if let Payload::Init { node_id, .. } = msg.get_type() {
             Ok(Self {
                 node_id: node_id.clone(),

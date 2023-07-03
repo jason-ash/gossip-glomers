@@ -24,7 +24,7 @@ impl<N: Node> Runtime<N> {
             match Message::try_from(line.as_ref()) {
                 Ok(msg) => {
                     if let Payload::Init { .. } = msg.get_type() {
-                        self.node = Some(N::new(&msg)?);
+                        self.node = Some(N::init(&msg)?);
                         let response = &self
                             .node
                             .as_mut()
