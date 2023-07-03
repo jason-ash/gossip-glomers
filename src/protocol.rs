@@ -36,7 +36,9 @@ impl TryFrom<&str> for Message {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Body<Payload> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub msg_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub in_reply_to: Option<MessageId>,
     #[serde(flatten)]
     pub payload: Payload,
@@ -52,8 +54,8 @@ pub enum Payload {
         echo: String,
     },
     Error {
-        text: String,
         code: usize,
+        text: String,
     },
     Generate,
     GenerateOk {

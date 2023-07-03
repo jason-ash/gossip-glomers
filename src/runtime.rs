@@ -35,7 +35,11 @@ impl<N: Node> Runtime<N> {
                                 .response_init_ok(&msg)?
                         )?;
                     } else {
-                        let response = &self.node.as_mut().unwrap().response(&msg)?;
+                        let response = &self
+                            .node
+                            .as_mut()
+                            .expect("to find an initialized node")
+                            .response(&msg)?;
                         write!(stdout, "{}\n", response)?
                     }
                 }
