@@ -19,7 +19,7 @@ impl Node for EchoAgent {
             })
         } else {
             Err(Error::NodeError {
-                msg: None,
+                msg: Some(Self::response_node_not_initialized(&msg)),
                 detail: "Expected an init message.".to_string(),
             })
         }
