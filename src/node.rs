@@ -1,6 +1,6 @@
 use crate::{
     error::{Error, Result},
-    protocol::{Body, Message, MessageId, NodeId, Payload},
+    protocol::{Body, Message, Payload},
 };
 use std::fmt::Debug;
 
@@ -8,14 +8,8 @@ pub trait Node
 where
     Self: Debug + Sized,
 {
-    /// construct a new node from an init message,
-    fn init(msg: &Message) -> Result<Self>;
-
-    /// return the node_id for this node, e.g. "n1".
-    fn node_id(&self) -> &NodeId;
-
-    /// return a unique msg_id for messages from this node.
-    fn generate_msg_id(&mut self) -> MessageId;
+    /// handle an init message, which may modify this Node's internal state.
+    fn init(&mut self, msg: &Message) -> Result<&mut Self>;
 
     /// return a message in resonse to other messages
     fn response(&mut self, msg: &Message) -> Result<Message>;

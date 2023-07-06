@@ -1,17 +1,17 @@
 use crate::{
     error::{Error, Result},
     node::Node,
-    protocol::{Message, Payload},
+    protocol::Message,
 };
 use std::io::{self, BufRead, Write};
 
-pub struct Runtime<N: Node> {
-    pub node: Option<N>,
+pub struct Runtime<'a, N: Node> {
+    pub node: &'a mut N,
 }
 
-impl<N: Node> Runtime<N> {
-    pub fn new() -> Self {
-        Self { node: None }
+impl<'a, N: Node> Runtime<'a, N> {
+    pub fn new(node: &'a mut N) -> Self {
+        Self { node }
     }
 
     pub fn start(&mut self) -> Result<()> {
@@ -22,37 +22,17 @@ impl<N: Node> Runtime<N> {
         for line in stdin.lines() {
             let line = line?;
             match Message::try_from(line.as_ref()) {
-                Ok(msg) => {
-                    if let Payload::Init { .. } = msg.get_type() {
-                        self.node = Some(N::init(&msg)?);
-                        let response = &self
-                            .node
-                            .as_mut()
-                            .expect("node to exist")
-                            .response_init_ok(&msg)?;
+                Ok(msg) => match self.node.response(&msg) {
+                    Ok(response) => Self::send(&response, &mut stdout)?,
+                    Err(Error::NodeError {
+                        msg: Some(response),
+                        detail,
+                    }) => {
                         Self::send(&response, &mut stdout)?;
-                    } else if self.node.is_none() {
-                        let response = N::response_node_not_initialized(&msg);
-                        Self::send(&response, &mut stderr)?;
-                    } else {
-                        let response = &self
-                            .node
-                            .as_mut()
-                            .expect("to find an initialized node")
-                            .response(&msg);
-                        match &response {
-                            Ok(msg) => Self::send(msg, &mut stdout)?,
-                            Err(Error::NodeError {
-                                msg: Some(err),
-                                detail,
-                            }) => {
-                                Self::send(err, &mut stdout)?;
-                                write!(stderr, "{}\n", detail)?;
-                            }
-                            _ => (),
-                        }
+                        write!(stderr, "{}\n", detail)?;
                     }
-                }
+                    Err(e) => write!(stderr, "{:?}\n", e)?,
+                },
                 Err(e) => write!(stderr, "{:?}\n", e)?,
             }
         }
