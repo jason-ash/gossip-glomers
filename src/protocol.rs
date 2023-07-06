@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 
@@ -19,12 +21,14 @@ impl Message {
             Body::Generate { msg_id, .. } => Some(msg_id),
             Body::Init { msg_id, .. } => Some(msg_id),
             Body::Read { msg_id, .. } => Some(msg_id),
+            Body::Topology { msg_id, .. } => Some(msg_id),
             Body::Error { .. } => None,
             Body::BroadcastOk { .. } => None,
             Body::EchoOk { .. } => None,
             Body::GenerateOk { .. } => None,
             Body::InitOk { .. } => None,
             Body::ReadOk { .. } => None,
+            Body::TopologyOk { .. } => None,
         }
     }
 
@@ -35,12 +39,14 @@ impl Message {
             Body::GenerateOk { in_reply_to, .. } => Some(in_reply_to),
             Body::InitOk { in_reply_to, .. } => Some(in_reply_to),
             Body::ReadOk { in_reply_to, .. } => Some(in_reply_to),
+            Body::TopologyOk { in_reply_to, .. } => Some(in_reply_to),
             Body::Error { in_reply_to, .. } => Some(in_reply_to),
             Body::Echo { .. } => None,
             Body::Broadcast { .. } => None,
             Body::Generate { .. } => None,
             Body::Init { .. } => None,
             Body::Read { .. } => None,
+            Body::Topology { .. } => None,
         }
     }
 }
@@ -106,5 +112,12 @@ pub enum Body {
     ReadOk {
         in_reply_to: MessageId,
         messages: Vec<String>,
+    },
+    Topology {
+        msg_id: MessageId,
+        topology: HashMap<NodeId, Vec<NodeId>>,
+    },
+    TopologyOk {
+        in_reply_to: MessageId,
     },
 }
