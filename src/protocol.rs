@@ -14,10 +14,12 @@ pub struct Message {
 impl Message {
     pub fn msg_id(&self) -> Option<MessageId> {
         match self.body {
+            Body::Broadcast { msg_id, .. } => Some(msg_id),
             Body::Echo { msg_id, .. } => Some(msg_id),
             Body::Generate { msg_id, .. } => Some(msg_id),
             Body::Init { msg_id, .. } => Some(msg_id),
             Body::Error { .. } => None,
+            Body::BroadcastOk { .. } => None,
             Body::EchoOk { .. } => None,
             Body::GenerateOk { .. } => None,
             Body::InitOk { .. } => None,
@@ -26,11 +28,13 @@ impl Message {
 
     pub fn in_reply_to(&self) -> Option<MessageId> {
         match self.body {
+            Body::BroadcastOk { in_reply_to, .. } => Some(in_reply_to),
             Body::EchoOk { in_reply_to, .. } => Some(in_reply_to),
             Body::GenerateOk { in_reply_to, .. } => Some(in_reply_to),
             Body::InitOk { in_reply_to, .. } => Some(in_reply_to),
             Body::Error { in_reply_to, .. } => Some(in_reply_to),
             Body::Echo { .. } => None,
+            Body::Broadcast { .. } => None,
             Body::Generate { .. } => None,
             Body::Init { .. } => None,
         }
@@ -54,6 +58,15 @@ impl TryFrom<&str> for Message {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Body {
+    Broadcast {
+        msg_id: MessageId,
+        message: String,
+    },
+    BroadcastOk {
+        msg_id: MessageId,
+        in_reply_to: MessageId,
+        message: String,
+    },
     Echo {
         msg_id: MessageId,
         echo: String,
@@ -72,6 +85,7 @@ pub enum Body {
         msg_id: MessageId,
     },
     GenerateOk {
+        msg_id: MessageId,
         in_reply_to: MessageId,
         id: String,
     },
