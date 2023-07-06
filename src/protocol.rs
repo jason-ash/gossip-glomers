@@ -18,11 +18,13 @@ impl Message {
             Body::Echo { msg_id, .. } => Some(msg_id),
             Body::Generate { msg_id, .. } => Some(msg_id),
             Body::Init { msg_id, .. } => Some(msg_id),
+            Body::Read { msg_id, .. } => Some(msg_id),
             Body::Error { .. } => None,
             Body::BroadcastOk { .. } => None,
             Body::EchoOk { .. } => None,
             Body::GenerateOk { .. } => None,
             Body::InitOk { .. } => None,
+            Body::ReadOk { .. } => None,
         }
     }
 
@@ -32,11 +34,13 @@ impl Message {
             Body::EchoOk { in_reply_to, .. } => Some(in_reply_to),
             Body::GenerateOk { in_reply_to, .. } => Some(in_reply_to),
             Body::InitOk { in_reply_to, .. } => Some(in_reply_to),
+            Body::ReadOk { in_reply_to, .. } => Some(in_reply_to),
             Body::Error { in_reply_to, .. } => Some(in_reply_to),
             Body::Echo { .. } => None,
             Body::Broadcast { .. } => None,
             Body::Generate { .. } => None,
             Body::Init { .. } => None,
+            Body::Read { .. } => None,
         }
     }
 }
@@ -85,7 +89,6 @@ pub enum Body {
         msg_id: MessageId,
     },
     GenerateOk {
-        msg_id: MessageId,
         in_reply_to: MessageId,
         id: String,
     },
@@ -96,5 +99,12 @@ pub enum Body {
     },
     InitOk {
         in_reply_to: MessageId,
+    },
+    Read {
+        msg_id: MessageId,
+    },
+    ReadOk {
+        in_reply_to: MessageId,
+        messages: Vec<String>,
     },
 }
