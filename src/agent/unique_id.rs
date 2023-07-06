@@ -1,7 +1,7 @@
 use crate::{
     error::{Error, Result},
     node::Node,
-    protocol::{Body, Message, MessageId, NodeId, Payload},
+    protocol::{Body, Message, MessageId, NodeId},
 };
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ impl UniqueIdAgent {
 
 impl Node for UniqueIdAgent {
     fn init(&mut self, msg: &Message) -> Result<&mut Self> {
-        if let Payload::Init { node_id, .. } = msg.get_type() {
+        if let Body::Init { node_id, .. } = &msg.body {
             self.node_id = Some(node_id.clone());
             Ok(self)
         } else {
@@ -39,27 +39,24 @@ impl Node for UniqueIdAgent {
     }
 
     fn response(&mut self, msg: &Message) -> Result<Message> {
-        match msg.get_type() {
-            Payload::Init { .. } => {
+        match msg.body {
+            Body::Init { .. } => {
                 self.init(&msg)?;
                 self.response_init_ok(&msg)
             }
-            Payload::Generate {} => {
+            Body::Generate {
+                msg_id: in_reply_to,
+            } => {
                 let msg_id = self.generate_msg_id();
+                let id = format!(
+                    "{}-{}",
+                    self.node_id.as_ref().expect("node to be initialized"),
+                    msg_id,
+                );
                 Ok(Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
-                    body: Body {
-                        msg_id: Some(msg_id),
-                        in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                        payload: Payload::GenerateOk {
-                            id: format!(
-                                "{}-{}",
-                                self.node_id.as_ref().expect("node to be initialized."),
-                                msg_id
-                            ),
-                        },
-                    },
+                    body: Body::GenerateOk { in_reply_to, id },
                 })
             }
             _ => Err(Error::NodeError {

@@ -1,7 +1,7 @@
 use crate::{
     error::{Error, Result},
     node::Node,
-    protocol::{Body, Message, MessageId, NodeId, Payload},
+    protocol::{Body, Message, MessageId, NodeId},
 };
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ impl EchoAgent {
 
 impl Node for EchoAgent {
     fn init(&mut self, msg: &Message) -> Result<&mut Self> {
-        if let Payload::Init { node_id, .. } = msg.get_type() {
+        if let Body::Init { node_id, .. } = &msg.body {
             self.node_id = Some(node_id.clone());
             Ok(self)
         } else {
@@ -39,18 +39,18 @@ impl Node for EchoAgent {
     }
 
     fn response(&mut self, msg: &Message) -> Result<Message> {
-        match msg.get_type() {
-            Payload::Init { .. } => {
+        match &msg.body {
+            Body::Init { .. } => {
                 self.init(&msg)?;
                 self.response_init_ok(&msg)
             }
-            Payload::Echo { echo } => Ok(Message {
+            Body::Echo { msg_id, echo } => Ok(Message {
                 src: msg.dest.clone(),
                 dest: msg.src.clone(),
-                body: Body {
-                    msg_id: Some(self.generate_msg_id()),
-                    in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                    payload: Payload::EchoOk { echo: echo.clone() },
+                body: Body::EchoOk {
+                    msg_id: self.generate_msg_id(),
+                    in_reply_to: *msg_id,
+                    echo: echo.clone(),
                 },
             }),
             _ => Err(Error::NodeError {

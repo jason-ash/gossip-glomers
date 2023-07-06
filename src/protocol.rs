@@ -8,12 +8,32 @@ pub type NodeId = String;
 pub struct Message {
     pub src: NodeId,
     pub dest: NodeId,
-    pub body: Body<Payload>,
+    pub body: Body,
 }
 
 impl Message {
-    pub fn get_type(&self) -> &Payload {
-        &self.body.payload
+    pub fn msg_id(&self) -> Option<MessageId> {
+        match self.body {
+            Body::Echo { msg_id, .. } => Some(msg_id),
+            Body::Generate { msg_id, .. } => Some(msg_id),
+            Body::Init { msg_id, .. } => Some(msg_id),
+            Body::Error { .. } => None,
+            Body::EchoOk { .. } => None,
+            Body::GenerateOk { .. } => None,
+            Body::InitOk { .. } => None,
+        }
+    }
+
+    pub fn in_reply_to(&self) -> Option<MessageId> {
+        match self.body {
+            Body::EchoOk { in_reply_to, .. } => Some(in_reply_to),
+            Body::GenerateOk { in_reply_to, .. } => Some(in_reply_to),
+            Body::InitOk { in_reply_to, .. } => Some(in_reply_to),
+            Body::Error { in_reply_to, .. } => Some(in_reply_to),
+            Body::Echo { .. } => None,
+            Body::Generate { .. } => None,
+            Body::Init { .. } => None,
+        }
     }
 }
 
@@ -35,35 +55,35 @@ impl TryFrom<&str> for Message {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Body<Payload> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg_id: Option<MessageId>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub in_reply_to: Option<MessageId>,
-    #[serde(flatten)]
-    pub payload: Payload,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum Payload {
+pub enum Body {
     Echo {
+        msg_id: MessageId,
         echo: String,
     },
     EchoOk {
+        msg_id: MessageId,
+        in_reply_to: MessageId,
         echo: String,
     },
     Error {
+        in_reply_to: MessageId,
         code: usize,
         text: String,
     },
-    Generate,
+    Generate {
+        msg_id: MessageId,
+    },
     GenerateOk {
+        in_reply_to: MessageId,
         id: String,
     },
     Init {
+        msg_id: MessageId,
         node_id: NodeId,
         node_ids: Vec<NodeId>,
     },
-    InitOk,
+    InitOk {
+        in_reply_to: MessageId,
+    },
 }

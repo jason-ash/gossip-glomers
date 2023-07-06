@@ -1,6 +1,6 @@
 use crate::{
     error::{Error, Result},
-    protocol::{Body, Message, Payload},
+    protocol::{Body, Message},
 };
 use std::fmt::Debug;
 
@@ -16,14 +16,12 @@ where
 
     /// generate an init_ok message in response to an init message.
     fn response_init_ok(&mut self, msg: &Message) -> Result<Message> {
-        if let Payload::Init { .. } = msg.get_type() {
+        if let Body::Init { msg_id, .. } = msg.body {
             Ok(Message {
                 src: msg.dest.clone(),
                 dest: msg.src.clone(),
-                body: Body {
-                    msg_id: None,
-                    in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                    payload: Payload::InitOk,
+                body: Body::InitOk {
+                    in_reply_to: msg_id,
                 },
             })
         } else {
@@ -40,13 +38,10 @@ where
         Message {
             src: msg.dest.clone(),
             dest: msg.src.clone(),
-            body: Body {
-                msg_id: None,
-                in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                payload: Payload::Error {
-                    code: 1,
-                    text: "This node doesn't exist; expecting an `init` message first.".into(),
-                },
+            body: Body::Error {
+                in_reply_to: msg.msg_id().unwrap_or_default(),
+                code: 11,
+                text: "This node doesn't exist; expecting an `init` message first.".into(),
             },
         }
     }
@@ -55,13 +50,10 @@ where
         Message {
             src: msg.dest.clone(),
             dest: msg.src.clone(),
-            body: Body {
-                msg_id: None,
-                in_reply_to: Some(msg.body.msg_id.expect("to find a msg_id")),
-                payload: Payload::Error {
-                    code: 10,
-                    text: "This node doesn't support messages of this type.".into(),
-                },
+            body: Body::Error {
+                in_reply_to: msg.msg_id().unwrap_or_default(),
+                code: 10,
+                text: "This node doesn't support messages of this type.".into(),
             },
         }
     }
