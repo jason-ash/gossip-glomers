@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
@@ -70,12 +70,10 @@ impl TryFrom<&str> for Message {
 pub enum Body {
     Broadcast {
         msg_id: MessageId,
-        message: String,
+        message: usize,
     },
     BroadcastOk {
-        msg_id: MessageId,
         in_reply_to: MessageId,
-        message: String,
     },
     Echo {
         msg_id: MessageId,
@@ -111,7 +109,7 @@ pub enum Body {
     },
     ReadOk {
         in_reply_to: MessageId,
-        messages: Vec<String>,
+        messages: HashSet<usize>,
     },
     Topology {
         msg_id: MessageId,
