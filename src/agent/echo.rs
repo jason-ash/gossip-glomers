@@ -28,25 +28,27 @@ impl EchoAgent {
 impl Node for EchoAgent {
     fn handler(&mut self, msg: &Message) -> Result<Vec<Message>> {
         match &msg.body {
-            Body::Init { node_id, .. } => {
+            Body::Init {
+                node_id, msg_id, ..
+            } => {
                 self.node_id = Some(node_id.clone());
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
                     body: Body::InitOk {
-                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        in_reply_to: msg_id.clone(),
                     },
                 };
                 Ok(vec![reply])
             }
-            Body::Echo { echo, .. } => {
-                let msg_id = self.generate_msg_id();
+            Body::Echo { echo, msg_id } => {
+                let generated_id = self.generate_msg_id();
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
                     body: Body::EchoOk {
-                        msg_id,
-                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        msg_id: generated_id,
+                        in_reply_to: msg_id.clone(),
                         echo: echo.clone(),
                     },
                 };

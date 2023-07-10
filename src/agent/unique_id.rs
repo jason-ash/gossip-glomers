@@ -28,28 +28,30 @@ impl UniqueIdAgent {
 impl Node for UniqueIdAgent {
     fn handler(&mut self, msg: &Message) -> Result<Vec<Message>> {
         match &msg.body {
-            Body::Init { node_id, .. } => {
+            Body::Init {
+                node_id, msg_id, ..
+            } => {
                 self.node_id = Some(node_id.clone());
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
                     body: Body::InitOk {
-                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        in_reply_to: msg_id.clone(),
                     },
                 };
                 Ok(vec![reply])
             }
-            Body::Generate { .. } => {
-                let msg_id = self.generate_msg_id();
+            Body::Generate { msg_id } => {
+                let generated_id = self.generate_msg_id();
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
                     body: Body::GenerateOk {
-                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        in_reply_to: msg_id.clone(),
                         id: format!(
                             "{}-{}",
                             self.node_id.as_ref().expect("to find a node_id"),
-                            msg_id
+                            generated_id
                         ),
                     },
                 };
