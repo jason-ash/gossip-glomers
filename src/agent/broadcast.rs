@@ -10,6 +10,7 @@ use crate::{
 pub struct BroadcastAgent {
     pub node_id: Option<NodeId>,
     pub node_ids: Option<Vec<NodeId>>,
+    pub neighbors: Option<Vec<NodeId>>,
     pub msg_id: MessageId,
     pub messages: HashSet<usize>,
 }
@@ -19,6 +20,7 @@ impl BroadcastAgent {
         Self {
             node_id: None,
             node_ids: None,
+            neighbors: None,
             msg_id: 0,
             messages: HashSet::new(),
         }
@@ -50,7 +52,13 @@ impl Node for BroadcastAgent {
                 };
                 Ok(vec![reply])
             }
-            Body::Topology { msg_id, .. } => {
+            Body::Topology { msg_id, topology } => {
+                if let Some(neighbors) =
+                    topology.get(self.node_id.as_ref().expect("to find node_id"))
+                {
+                    self.neighbors = Some(neighbors.clone());
+                }
+
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
@@ -61,7 +69,7 @@ impl Node for BroadcastAgent {
                 Ok(vec![reply])
             }
             Body::Broadcast { msg_id, message } => {
-                let _ = self.messages.insert(message.clone());
+                let mut replies = Vec::new();
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
@@ -69,8 +77,25 @@ impl Node for BroadcastAgent {
                         in_reply_to: msg_id.clone(),
                     },
                 };
-                Ok(vec![reply])
+                replies.push(reply);
+                if self.messages.insert(message.clone()) {
+                    let neighbors = self.neighbors.as_ref().expect("to find neighbors").clone();
+                    let broadcasts = neighbors.iter().map(|n| {
+                        let generated_id = &self.generate_msg_id();
+                        Message {
+                            src: self.node_id.as_ref().expect("to find node_id").clone(),
+                            dest: n.clone(),
+                            body: Body::Broadcast {
+                                msg_id: generated_id.clone(),
+                                message: message.clone(),
+                            },
+                        }
+                    });
+                    replies.extend(broadcasts);
+                };
+                Ok(replies)
             }
+            Body::BroadcastOk { .. } => Ok(Vec::new()),
             Body::Read { msg_id } => {
                 let reply = Message {
                     src: msg.dest.clone(),
