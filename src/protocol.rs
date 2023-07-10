@@ -121,3 +121,23 @@ pub enum Body {
         in_reply_to: MessageId,
     },
 }
+
+impl std::fmt::Display for Body {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Broadcast { .. } => write!(f, "broadcast"),
+            Self::BroadcastOk { .. } => write!(f, "broadcast_ok"),
+            Self::Echo { .. } => write!(f, "echo"),
+            Self::EchoOk { .. } => write!(f, "echo_ok"),
+            Self::Error { .. } => write!(f, "error"),
+            Self::Generate { .. } => write!(f, "generate"),
+            Self::GenerateOk { .. } => write!(f, "generate_ok"),
+            Self::Init { .. } => write!(f, "init"),
+            Self::InitOk { .. } => write!(f, "init_ok"),
+            Self::Read { .. } => write!(f, "read"),
+            Self::ReadOk { .. } => write!(f, "read_ok"),
+            Self::Topology { .. } => write!(f, "topology"),
+            Self::TopologyOk { .. } => write!(f, "topology_ok"),
+        }
+    }
+}

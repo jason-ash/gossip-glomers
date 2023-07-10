@@ -26,36 +26,46 @@ impl EchoAgent {
 }
 
 impl Node for EchoAgent {
-    fn init(&mut self, msg: &Message) -> Result<&mut Self> {
-        if let Body::Init { node_id, .. } = &msg.body {
-            self.node_id = Some(node_id.clone());
-            Ok(self)
-        } else {
-            Err(Error::NodeError {
-                msg: Some(Self::response_node_not_initialized(&msg)),
-                detail: "Expected an init message.".to_string(),
-            })
-        }
-    }
-
-    fn response(&mut self, msg: &Message) -> Result<Message> {
+    fn handler(&mut self, msg: &Message) -> Result<Vec<Message>> {
         match &msg.body {
             Body::Init { .. } => {
-                self.init(&msg)?;
-                self.response_init_ok(&msg)
+                self.node_id = Some(msg.dest.clone());
+                let reply = Message {
+                    src: msg.dest.clone(),
+                    dest: msg.src.clone(),
+                    body: Body::InitOk {
+                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                    },
+                };
+                Ok(vec![reply])
             }
-            Body::Echo { msg_id, echo } => Ok(Message {
-                src: msg.dest.clone(),
-                dest: msg.src.clone(),
-                body: Body::EchoOk {
-                    msg_id: self.generate_msg_id(),
-                    in_reply_to: *msg_id,
-                    echo: echo.clone(),
-                },
-            }),
+            Body::Echo { echo, .. } => {
+                let msg_id = self.generate_msg_id();
+                let reply = Message {
+                    src: msg.dest.clone(),
+                    dest: msg.src.clone(),
+                    body: Body::EchoOk {
+                        msg_id,
+                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        echo: echo.clone(),
+                    },
+                };
+                Ok(vec![reply])
+            }
             _ => Err(Error::NodeError {
-                msg: Some(Self::response_not_supported(&msg)),
-                detail: "Can only respond to 'echo' messages.".to_string(),
+                msg: Some(Message {
+                    src: msg.dest.clone(),
+                    dest: msg.src.clone(),
+                    body: Body::Error {
+                        in_reply_to: msg.msg_id().expect("to find a msg_id"),
+                        code: 10,
+                        text: format!(
+                            "This node does not handle messages with body type: '{}'",
+                            msg.body
+                        ),
+                    },
+                }),
+                detail: String::default(),
             }),
         }
     }

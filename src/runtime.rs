@@ -22,8 +22,12 @@ impl<'a, N: Node> Runtime<'a, N> {
         for line in stdin.lines() {
             let line = line?;
             match Message::try_from(line.as_ref()) {
-                Ok(msg) => match self.node.response(&msg) {
-                    Ok(response) => Self::send(&response, &mut stdout)?,
+                Ok(msg) => match self.node.handler(&msg) {
+                    Ok(responses) => {
+                        for response in responses {
+                            Self::send(&response, &mut stdout)?
+                        }
+                    }
                     Err(Error::NodeError {
                         msg: Some(response),
                         detail,
