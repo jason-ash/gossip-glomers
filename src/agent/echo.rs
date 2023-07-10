@@ -28,8 +28,8 @@ impl EchoAgent {
 impl Node for EchoAgent {
     fn handler(&mut self, msg: &Message) -> Result<Vec<Message>> {
         match &msg.body {
-            Body::Init { .. } => {
-                self.node_id = Some(msg.dest.clone());
+            Body::Init { node_id, .. } => {
+                self.node_id = Some(node_id.clone());
                 let reply = Message {
                     src: msg.dest.clone(),
                     dest: msg.src.clone(),
